@@ -33,7 +33,7 @@
     function strip_data_from_row(input, tagopen, tagend){
       //let re_open_td = new RegExp("<td");
       //
-      console.log("start strip_data_from_row")
+      //console.log("start strip_data_from_row")
       var row_data = [];
       while (input.includes(tagopen)){
         let re_st = new RegExp(tagopen)
@@ -45,7 +45,7 @@
         let td_string = input.substring(result_td.index, result_td_end.index+5)
         //+5 for '</tr>'
         //console.log("td_string:\n", td_string)
-        var td_value = stripHtml(td_string).replace('\n','').trim().replace('*','')
+        var td_value = stripHtml(td_string).replace('\n','').trim().replace(/\*/gi,'')
         row_data.push(td_value)
         //console.log("td_value:", td_value)
         //console.log("td_string.length:\n", td_string.length)
@@ -53,7 +53,7 @@
         input = input.substring(result_td_end.index+5, input.length)
         //console.log("after trimming. tr_string:\n", input.substring(0,200))
       }
-      console.log("output from function strip_data_from_row > row_data:\n"+row_data+"\n")
+      //console.log("output from function strip_data_from_row > row_data:\n"+row_data+"\n")
       return row_data//returns list of data strings.
     }
 
@@ -68,11 +68,11 @@
     function getPosition(str, m, i) { return str.split(m, i).join(m).length; }
 
     async function get_table_from_urls(urls){
-      console.log("start async function get_table_from_urls")
-      console.log("urls.length", urls.length)
+      //console.log("start async function get_table_from_urls")
+      //console.log("urls.length", urls.length)
       for (i=0; i<urls.length; i++){
         url = urls[i]
-        console.log("get_table_from_urls: url = \n", url);
+        //console.log("get_table_from_urls: url = \n", url);
         await $.get(url, function(response) {
           var table_data = [];
           //console.log("response:\n", response);
@@ -86,17 +86,17 @@
           //let re_h2_tag = new RegExp(h2_tag)
           //<div id="content_container_954241">
           let result_div_start = response.match(/<div id=\"content_container_/);
-          console.log("result_div_start.index:", result_div_start.index)
-          console.log(response.substring(result_div_start.index, result_div_start.index+50))
+          //console.log("result_div_start.index:", result_div_start.index)
+          //console.log(response.substring(result_div_start.index, result_div_start.index+50))
           //let result_h2_start = response.match(/<h2/);
           let result_h2_start_pos = getPosition(response, "<h2", 6)
-          console.log("result_h2_start_pos:", result_h2_start_pos)
+          //console.log("result_h2_start_pos:", result_h2_start_pos)
           let result_h2_end_pos = getPosition(response, "</h2>", 6)
-          console.log("result_h2_end_pos:", result_h2_end_pos)
+          //console.log("result_h2_end_pos:", result_h2_end_pos)
           h2_html = response.substring(result_h2_start_pos, result_h2_end_pos+5)
-          console.log("h2_html:", h2_html)
+          //console.log("h2_html:", h2_html)
           let data_date = stripHtml(h2_html)
-          console.log("\n\ndate of data in this url = '"+data_date+"'\n\n")
+          //console.log("\n\ndate of data in this url = '"+data_date+"'\n\n")
           let result_tbody = response.match(/<tbody>/);
           let result_tbody_end = response.match(/<\/tbody>/);
           //console.log("result_tbody:\n", result_tbody)
@@ -109,7 +109,7 @@
           col_headers_str = strip_html_by_tags(response, "<thead>", "<\/thead>")
           //console.log("col_headers_str:", col_headers_str)
           col_headers = strip_data_from_row(col_headers_str, "<th", "<\/th")
-          console.log("col_headers:", col_headers)
+          //console.log("col_headers:", col_headers)
           //now extract col names from col_headers
 
           //
@@ -132,19 +132,25 @@
             var row_dict = {};
             col_headers.forEach((col_header, i) => row_dict[col_header] = row_data[i]);
             row_dict["data_date"] = data_date;
-            console.log("row_dict:\n", row_dict)
-            table_data.push(row_dict);
+            //console.log("row_dict:\n", row_dict)
+            //table_data.push(row_dict);
+            if (row_dict[col_headers[0]]){
+              dataset.push(row_dict);
+            }else{
+              console.log("undefined element in row_dict, row_dict not added to dataset")
+              console.log(row_dict)
+            }
             console.log("\n\n")
           }//end while (tbody_text.includes("<tr"))
-          console.log("table_data:\n", table_data)
+          //console.log("table_data:\n", table_data)
           console.log("url:", url)
           console.log("i:", i)
-          dataset.push({i:table_data})
+          //dataset.push({i:table_data})
+        }).fail(function() {
+            console.log( "error loading url=",url);
         });//end $.get(url, function(response)
-        console.log("dataset:\n", dataset)
       }//end for (i=0; i<urls.length; i++)
     }//end function get_url_table(url)
-
 
     //if cannot use CORS plugin above, setup a CORS proxy as below.
     /*
@@ -160,17 +166,28 @@
     var file_data;
     var dataset = []
     var urls = []
-    for (i=25; i<31; i++){
+    for (i=25; i<32; i++){
       var url = url_base + i.toString()
       console.log("i="+i.toString()+", url = \n", url)
       urls.push(url)
-      //file_data = get_url_table(url)
-      //dataset.push({i:file_data})
+    }
+
+    function get_locations(dataset){
+      var locations = []
+      for(i=0; i<dataset.length; i++){
+        var location = dataset[i]['HHS'];
+        //console.log("location:", location)
+        locations.indexOf(location) === -1 && locations.push(location);
+        //locations.push(location);
+      }
+      console.log("locations.length:", locations.length)
+      console.log("locations:", locations)
     }
 
     get_table_from_urls(urls).then(()=>{
       console.log('getPosts(urls) done')
       console.log("dataset:\n", dataset)
+      var locations =  get_locations(dataset)
     });
 
   </script>
