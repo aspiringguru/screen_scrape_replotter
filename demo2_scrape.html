@@ -17,7 +17,7 @@
     //use this plugin in browser. otherwise need to setup a CORS proxy.
     //https://chrome.google.com/webstore/detail/moesif-orign-cors-changer/digfbfaphojjndkpccljibejjbppifbc?hl=en-US
     //var url = 'https://www.freecodecamp.com/' + name
-    var url = 'https://www.health.qld.gov.au/news-events/doh-media-releases/releases/queensland-novel-coronavirus-covid-19-update31'
+    var url_base = 'https://www.health.qld.gov.au/news-events/doh-media-releases/releases/queensland-novel-coronavirus-covid-19-update'
     // number of challenges completed
 
     function strip_html_by_tags(input, tagopen, tagend){
@@ -35,7 +35,6 @@
     function strip_data_from_row(input, tagopen, tagend){
       //let re_open_td = new RegExp("<td");
       //
-      var count_td = 0;
       console.log("start strip_data_from_row")
       var row_data = [];
       while (input.includes(tagopen)){
@@ -55,9 +54,6 @@
         //
         input = input.substring(result_td_end.index+5, input.length)
         console.log("after trimming. tr_string:\n", input.substring(0,200))
-        count_td += 1
-        console.log("count_td:", count_td)
-        if (count_td>8){ break }
       }
       console.log("output from function strip_data_from_row > row_data:\n"+row_data+"\n")
       return row_data//returns list of data strings.
@@ -71,89 +67,76 @@
          return tmp.textContent || tmp.innerText || "";
       }
 
-    console.log("url = ", url);
-    $.get(url, function(response) {
-      var table_data = [];
-      //console.log("response:\n", response);
-      let response_str = response;
-      //console.log("typeof response:\n", typeof response);
-      //console.log("typeof response_str:\n", typeof response_str);
-      //console.log("response_str.length:\n", response_str.length);
-      let result_tbody = response.match(/<tbody>/);
-      let result_tbody_end = response.match(/<\/tbody>/);
-      console.log("result_tbody:\n", result_tbody)
-      console.log("result_tbody.index=", result_tbody.index)
-      console.log("result_tbody_end.index=", result_tbody_end.index)
-      let tbody_text = response.substring(result_tbody.index, result_tbody_end.index+8)
-      //8 is # of chars in '</tbody>'
-      console.log("tbody_text:", tbody_text)
-      //
-      /*
-      let re = new RegExp("<thead>")
-      let result_thead = response.match(re);
-      //let result_thead = response.match(/<thead>/);
-      re = new RegExp("<\/thead>")
-      let result_thead_end = response.match(re);
-      //let result_thead_end = response.match(/<\/thead>/);
-      console.log("result_thead.index:", result_thead.index)
-      console.log("result_thead_end.index:", result_thead_end.index)
-      let thead_string = response.substring(result_thead.index, result_thead_end.index+8)
-      //+8 for '</thead>'
-      console.log("thead_string:\n\n"+ thead_string+"\n\n")
-      */
-      col_headers_str = strip_html_by_tags(response, "<thead>", "<\/thead>")
-      console.log("col_headers_str:", col_headers_str)
-      col_headers = strip_data_from_row(col_headers_str, "<th", "<\/th")
-      console.log("col_headers:", col_headers)
-      //now extract col names from col_headers
+    function get_url_table(url){
+      console.log("function get_url_table > url = ", url);
+      $.get(url, function(response) {
+        var table_data = [];
+        //console.log("response:\n", response);
+        let response_str = response;
+        //console.log("typeof response:\n", typeof response);
+        //console.log("typeof response_str:\n", typeof response_str);
+        //console.log("response_str.length:\n", response_str.length);
+        let result_tbody = response.match(/<tbody>/);
+        let result_tbody_end = response.match(/<\/tbody>/);
+        console.log("result_tbody:\n", result_tbody)
+        console.log("result_tbody.index=", result_tbody.index)
+        console.log("result_tbody_end.index=", result_tbody_end.index)
+        let tbody_text = response.substring(result_tbody.index, result_tbody_end.index+8)
+        //8 is # of chars in '</tbody>'
+        console.log("tbody_text:", tbody_text)
+        //
+        col_headers_str = strip_html_by_tags(response, "<thead>", "<\/thead>")
+        console.log("col_headers_str:", col_headers_str)
+        col_headers = strip_data_from_row(col_headers_str, "<th", "<\/th")
+        console.log("col_headers:", col_headers)
+        //now extract col names from col_headers
 
-      //
-      var row_count = 0
-      while (tbody_text.includes("<tr")){
-        var row_data = [];
-        let result_tr = tbody_text.match(/<tr/);
-        let result_tr_end = tbody_text.match(/<\/tr>/);
-        console.log("result_tr.index:", result_tr.index)
-        console.log("result_tr_end.index:", result_tr_end.index)
-        let tr_string = tbody_text.substring(result_tr.index, result_tr_end.index+5)
-        //+5 for '</tr>'
-        console.log("tr_string:\n", tr_string)
-        //now strip out <td #$@#$blah###></td>
-        var count_td = 0;
-        while (tr_string.includes("<td")){
-          let result_td = tr_string.match(/<td/);
-          let result_td_end = tr_string.match(/<\/td>/);
-          console.log("result_td.index:", result_td.index)
-          console.log("result_td_end.index:", result_td_end.index)
-          let td_string = tr_string.substring(result_td.index, result_td_end.index+5)
+        //
+        while (tbody_text.includes("<tr")){
+          var row_data = [];
+          let result_tr = tbody_text.match(/<tr/);
+          let result_tr_end = tbody_text.match(/<\/tr>/);
+          console.log("result_tr.index:", result_tr.index)
+          console.log("result_tr_end.index:", result_tr_end.index)
+          let tr_string = tbody_text.substring(result_tr.index, result_tr_end.index+5)
           //+5 for '</tr>'
-          console.log("td_string:\n", td_string)
-          var td_value = stripHtml(td_string).replace('\n','').trim()
-          row_data.push(td_value)
-          console.log("td_value:", td_value)
-          console.log("td_string.length:\n", td_string.length)
-          //
-          tr_string = tr_string.substring(result_td_end.index+5, tr_string.length)
-          console.log("after trimming. tr_string:\n", tr_string.substring(0,200))
-          count_td += 1
-          console.log("count_td:", count_td)
-          if (count_td>8){ break }
+          console.log("tr_string:\n", tr_string)
+          //now strip out <td #$@#$blah###></td>
+          //replace this while loop with the function
+          while (tr_string.includes("<td")){
+            let result_td = tr_string.match(/<td/);
+            let result_td_end = tr_string.match(/<\/td>/);
+            console.log("result_td.index:", result_td.index)
+            console.log("result_td_end.index:", result_td_end.index)
+            let td_string = tr_string.substring(result_td.index, result_td_end.index+5)
+            //+5 for '</tr>'
+            console.log("td_string:\n", td_string)
+            var td_value = stripHtml(td_string).replace('\n','').trim()
+            row_data.push(td_value)
+            console.log("td_value:", td_value)
+            console.log("td_string.length:\n", td_string.length)
+            //
+            tr_string = tr_string.substring(result_td_end.index+5, tr_string.length)
+            console.log("after trimming. tr_string:\n", tr_string.substring(0,200))
+          }
+          console.log("tbody_text.length:", tbody_text.length)
+          tbody_text = tbody_text.substring(result_tr_end.index+5, tbody_text.length)
+          console.log("after trimming. tbody_text:\n", tbody_text.substring(0,200))
+          //convert row_data to dictionary.
+          var row_dict = {};
+          col_headers.forEach((col_header, i) => row_dict[col_header] = row_data[i]);
+          console.log("row_dict:\n", row_dict)
+          table_data.push(row_dict);
+          console.log("\n\n")
         }
-        console.log("tbody_text.length:", tbody_text.length)
-        tbody_text = tbody_text.substring(result_tr_end.index+5, tbody_text.length)
-        console.log("after trimming. tbody_text:\n", tbody_text.substring(0,200))
-        table_data.push(row_data);
-        row_count += 1
-        console.log("row_count:", row_count)
-        console.log("\n\n")
-        if (row_count>20){ break }
-      }
-      console.log("table_data:\n", table_data)
-      console.log("table_data[0]:\n", table_data[0])
-      console.log("table_data[0][0]:\n'"+ table_data[0][0]+"'")
+        console.log("table_data:\n", table_data)
+        return table_data
+      });//end $.get(url, function(response)
+      return "no result."
+    }//end function get_url_table(url)
 
-      });
-    //if cannot use CORS plugin above, setup a CORS proxy.
+
+    //if cannot use CORS plugin above, setup a CORS proxy as below.
     /*
     var url = "http://anyorigin.com/go?url="
       + encodeURIComponent("https://www.codewars.com/users/") + name
@@ -164,6 +147,15 @@
         console.log(response);
     });
     */
+    var file_data;
+    var dataset = []
+    for (i=25; i<33; i++){
+      var url = url_base + i.toString()
+      console.log("loading data for url = ", url)
+      file_data = get_url_table(url)
+      dataset.push({i:file_data})
+    }
+    console.log("dataset:\n", dataset)
 
   </script>
 </body>
