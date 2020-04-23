@@ -1,0 +1,5 @@
+cd /mnt/d/2020/coding/client_side_screen_scraping
+
+
+
+https://www.npmjs.com/package/local-cors-proxy

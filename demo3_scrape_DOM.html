@@ -1,0 +1,43 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>screen scrape tutorial</title>
+  <!-- <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
+
+  <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+
+</head>
+
+<body>
+  <script>
+    var name = "codemzy";
+    //use this plugin in browser. otherwise need to setup a CORS proxy.
+    //https://chrome.google.com/webstore/detail/moesif-orign-cors-changer/digfbfaphojjndkpccljibejjbppifbc?hl=en-US
+    //var url = 'https://www.freecodecamp.com/' + name
+    var url = 'https://www.health.qld.gov.au/news-events/doh-media-releases/releases/queensland-novel-coronavirus-covid-19-update31'
+    // number of challenges completed
+
+    function stripHtml(html)
+      {
+         var tmp = document.createElement("DIV");
+         tmp.innerHTML = html;
+         return tmp.textContent || tmp.innerText || "";
+      }
+
+    console.log("url = ", url);
+    $.get(url, function(response) {
+      console.log("response:\n", response);
+      html = $.parseHTML( response )
+      console.log("html:\n", html)
+      console.log("typeof html:\n", typeof html)
+      console.log("html.length:\n", html.length)
+      var desired =  $($.parseHTML(response)).filter("#table35084");
+      console.log("desired:\n", desired)
+      console.log("typeof desired:\n", typeof desired)
+    });
+  </script>
+</body>
+</html>
