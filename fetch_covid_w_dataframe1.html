@@ -1,22 +1,24 @@
 <!--
-use with browser cors plugin
-https://stackoverflow.com/questions/8267245/how-to-get-value-of-h2-tag-for-a-div-inside-other-div-with-id-using-javascript
-https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
-https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
-
+if you like this or have questions, email the author sleepyhollowinoz@gmail.com
 -->
 <!doctype html>
 
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Fetch Mysteries</title>
+  <title>Fetch Demo</title>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <style> /* set the CSS */
+  .bar { fill: steelblue; }
+  </style>
 </head>
-
 <body>
+  <h2>COVID data : client side screen scraped from health.qld.gov.au</h2>
+  <h3>uses CORS proxy, d3.js and fetch</h3>
+  <div id='table1'></div>
 
 <script>
-  var url_base = 'https://www.health.qld.gov.au/news-events/doh-media-releases/releases/queensland-novel-coronavirus-covid-19-update'
+  var url_base = 'https://cors-anywhere.herokuapp.com/https://www.health.qld.gov.au/news-events/doh-media-releases/releases/queensland-novel-coronavirus-covid-19-update'
   var url = url_base+"30"
   console.log("url=", url)
 
@@ -57,6 +59,85 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
     return table_data
   }
 
+  function format_data_for_category_bar_chart(data_in, category){
+    var data_out = []
+    for (var i=1; i<data_in.length-1; i++){
+      //row 0 is column names, ignore
+      var value = data_in[i][category]
+      var area = data_in[i]['HHS']
+      data_out.push({'area':area, 'value':value})
+    }
+    return data_out
+  }
+
+  // set the dimensions and margins of the graph
+  var margin = {top: 20, right: 20, bottom: 120, left: 40},
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+
+  // set the ranges
+  var x = d3.scaleBand()
+            .range([0, width])
+            .padding(0.1);
+  var y = d3.scaleLinear()
+            .range([height, 0]);
+
+  // append the svg object to the body of the page
+  // append a 'group' element to 'svg'
+  // moves the 'group' element to the top left margin
+  var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+  console.log("svg:", svg)
+  console.log("x:", x)
+  console.log("y:", y)
+
+
+  function add_d3graph(data){
+    // format the data
+    //original csv loaded has 2 columns - salesperson,sales
+    //new data format has keys = area & value
+    console.log("start add_d3graph(data)");
+    for (var i=0; i<data.length; i++){
+      console.log(data[i])
+    }
+    console.log("-------------------------------");
+    // Scale the range of the data in the domains
+    x.domain(data.map(function(d) { return d.area; }));
+    y.domain([0, d3.max(data, function(d) { return d.value; })]);
+    console.log("x & y domains set.");
+    // append the rectangles for the bar chart
+    svg.selectAll(".bar")
+        .data(data)
+      .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", function(d) { return x(d.area); })
+        .attr("width", x.bandwidth())
+        .attr("y", function(d) { return y(d.value); })
+        .attr("height", function(d) { return height - y(d.value); });
+    console.log("rectangles for the bar chart appended.");
+    // add the x Axis
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("y", 0)
+        .attr("x", 9)
+        .attr("dy", ".35em")
+        .attr("transform", "rotate(30)")
+        .style("text-anchor", "start");
+
+    console.log("x Axis added")
+    // add the y Axis
+    svg.append("g")
+        .call(d3.axisLeft(y));
+    console.log("y Axis added")
+    console.log("end add_d3graph(data)");
+  }
+
 
   fetch(url).then(function (response) {
   	// The API call was successful!
@@ -66,47 +147,20 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
     // Convert the HTML string into a document object
   	var parser = new DOMParser();
   	var doc = parser.parseFromString(html, 'text/html');
-    // Get the image file
-  	//var elem1 = doc.getElementById('content_container_955722');
-    ////*[@id="content_container_955722"]
-  	//console.log(elem1);
-    //var elem2 = elem1.querySelector('h2')
-    //console.log("elem2:", elem2);
-    //var date_text = elem2.innerHTML
-    //console.log("date_text:", date_text);
     var elems_h2 = doc.getElementsByTagName('h2')
     var date_text = doc.getElementsByTagName('h2')[5].textContent
     console.log("date_text = elems_h2[5].textContent:", date_text);
     //https://developer.mozilla.org/en-US/docs/Web/API/Document/evaluate
-    //class="table table-bordered header-basic"
-    //var elem_table = doc.getElementsByClassName('table-bordered')
-    //console.log("elem_table:\n", elem_table)
-    //console.log("typeof elem_table:\n", typeof elem_table)
-    //console.log("elem_table.rows.length:", elem_table.rows.length)//err elem_table.rows is undefined
     var elem_table = doc.getElementsByTagName('table')
-    //console.log("elem_table getElementsByTagName:\n", elem_table)
-    //console.log("elem_table[0].rows:", elem_table[0].rows)
     console.log("elem_table[0].rows.length:", elem_table[0].rows.length)
-    //console.log("elem_table[0].rows[0]:", elem_table[0].rows[0])
-    //console.log("elem_table[0].rows[0].cells:", elem_table[0].rows[0].cells)
     console.log("elem_table[0].rows[0].cells.length:", elem_table[0].rows[0].cells.length)
     data = get_data_from_dom(elem_table[0], date_text)
     console.log("data retrieved from dom =\n", data)
-    /*
-    console.log("elem_table[0].rows[0].cells[0]:", elem_table[0].rows[0].cells[0])
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[0].cells[0].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[1].cells[0].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[2].cells[0].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[3].cells[0].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[0].cells[1].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[1].cells[1].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[2].cells[1].textContent)
-    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[3].cells[1].textContent)
-    */
-
-    //console.log("elem_table.rows.length:", elem_table.rows.length)//err elem_table.rows is undefined
-    //var elem_thead = doc.getElementsByTagName('thead')
-    //console.log("elem_thead:\n", elem_thead)
+    //simple demo. change this to be interactive selected by user.
+    var category = "Active cases"
+    var data_categ_formatted = format_data_for_category_bar_chart(data, category)
+    console.log("data_categ_formatted:\n", data_categ_formatted)
+    add_d3graph(data_categ_formatted)
     /*
     var elems_th = doc.getElementsByTagName('th')
     //console.log("elems_th:\n", elems_th)
@@ -114,12 +168,12 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
       console.log(i.toString()+": "+ elems_th[i].textContent)
     }
     */
-
-
-  	//console.log(html);
   }).catch(function (err) {
   	// There was an error
   	console.warn('Something went wrong.', err);
   });
 </script>
 </body>
+
+
+<!-- https://stackoverflow.com/questions/51012819/how-to-use-fetch-within-a-for-loop-wait-for-results-and-then-console-log-it -->

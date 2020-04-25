@@ -1,6 +1,6 @@
 
-
-
+ubuntu
+cd /mnt/d/2020/coding/client_side_screen_scraping
 npm install http-server -g
 http-server -p  5000
 
