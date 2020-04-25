@@ -1,0 +1,31 @@
+<!--  use with browser cors plugin -->
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fetch Mysteries</title>
+</head>
+
+<body>
+
+<script>
+  fetch('https://gomakethings.com/about').then(function (response) {
+  	// The API call was successful!
+    return response.text();
+  }).then(function (html) {
+  	// This is the JSON from our response
+    // Convert the HTML string into a document object
+  	var parser = new DOMParser();
+  	var doc = parser.parseFromString(html, 'text/html');
+    // Get the image file
+  	var img = doc.querySelector('img');
+    //https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
+  	console.log(img);
+  	//console.log(html);
+  }).catch(function (err) {
+  	// There was an error
+  	console.warn('Something went wrong.', err);
+  });
+</script>
+</body>

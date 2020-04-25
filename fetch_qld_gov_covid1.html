@@ -1,0 +1,86 @@
+<!--
+use with browser cors plugin
+https://stackoverflow.com/questions/8267245/how-to-get-value-of-h2-tag-for-a-div-inside-other-div-with-id-using-javascript
+https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
+https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
+
+-->
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fetch Mysteries</title>
+</head>
+
+<body>
+
+<script>
+  var url_base = 'https://www.health.qld.gov.au/news-events/doh-media-releases/releases/queensland-novel-coronavirus-covid-19-update'
+  var url = url_base+"30"
+  console.log("url=", url)
+
+  function getElementByXpath(path) {
+    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  }
+
+
+  fetch(url).then(function (response) {
+  	// The API call was successful!
+    return response.text();
+  }).then(function (html) {
+  	// This is the JSON from our response
+    // Convert the HTML string into a document object
+  	var parser = new DOMParser();
+  	var doc = parser.parseFromString(html, 'text/html');
+    // Get the image file
+  	var elem1 = doc.getElementById('content_container_955722');
+    ////*[@id="content_container_955722"]
+  	console.log(elem1);
+    var elem2 = elem1.querySelector('h2')
+    console.log("elem2:", elem2);
+    var date_text = elem2.innerHTML
+    console.log("date_text:", date_text);
+    var elems_h2 = doc.getElementsByTagName('h2')
+    console.log("elems_h2[5].textContent:", elems_h2[5].textContent);
+
+    //https://developer.mozilla.org/en-US/docs/Web/API/Document/evaluate
+    //class="table table-bordered header-basic"
+    var elem_table = doc.getElementsByClassName('table-bordered')
+    console.log("elem_table:\n", elem_table)
+    console.log("typeof elem_table:\n", typeof elem_table)
+    //console.log("elem_table.rows.length:", elem_table.rows.length)//err elem_table.rows is undefined
+    var elem_table = doc.getElementsByTagName('table')
+    console.log("elem_table getElementsByTagName:\n", elem_table)
+    console.log("elem_table[0].rows:", elem_table[0].rows)
+    console.log("elem_table[0].rows.length:", elem_table[0].rows.length)
+    console.log("elem_table[0].rows[0]:", elem_table[0].rows[0])
+    console.log("elem_table[0].rows[0].cells:", elem_table[0].rows[0].cells)
+    console.log("elem_table[0].rows[0].cells.length:", elem_table[0].rows[0].cells.length)
+    console.log("elem_table[0].rows[0].cells[0]:", elem_table[0].rows[0].cells[0])
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[0].cells[0].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[1].cells[0].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[2].cells[0].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[3].cells[0].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[0].cells[1].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[1].cells[1].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[2].cells[1].textContent)
+    console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[3].cells[1].textContent)
+
+    //console.log("elem_table.rows.length:", elem_table.rows.length)//err elem_table.rows is undefined
+    //var elem_thead = doc.getElementsByTagName('thead')
+    //console.log("elem_thead:\n", elem_thead)
+    var elems_th = doc.getElementsByTagName('th')
+    console.log("elems_th:\n", elems_th)
+    for (var i=0; i<elems_th.length; i++){
+      console.log(i.toString()+": "+ elems_th[i].textContent)
+    }
+
+
+  	//console.log(html);
+  }).catch(function (err) {
+  	// There was an error
+  	console.warn('Something went wrong.', err);
+  });
+</script>
+</body>
