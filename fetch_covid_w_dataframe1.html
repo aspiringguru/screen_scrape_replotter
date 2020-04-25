@@ -24,6 +24,39 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
     return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
   }
 
+  function get_data_from_dom(dom_table, date_text){
+    table_data = []
+    var num_rows = dom_table.rows.length;
+    var num_cols = dom_table.rows[0].cells.length;
+    console.log("get_data_from_dom # rows = ", num_rows)
+    console.log("get_data_from_dom # cols = ", num_cols)
+    console.log("date_text:", date_text)
+    //row zero = column header names.
+    colnames = []
+    for (var i=0; i<num_cols; i++){
+      var cell_text = dom_table.rows[0].cells[i].textContent.replace("\*", "")
+      //console.log(i.toString()+":"+cell_text)
+      colnames.push(cell_text)
+    }
+    console.log("colnames:",colnames)
+    //
+    for (var i=0; i<num_rows; i++){
+      var row_dict = {}
+      row_dict['date']=date_text;
+      for (var j=0; j<num_cols; j++){
+        var cell_text = dom_table.rows[i].cells[j].textContent
+        cell_text = cell_text.replace(/\*/g, "")
+        cell_text = cell_text.replace(/\n/g, "")
+        cell_text = cell_text.trim()
+        //console.log("cell_text for table[row:", i.toString()+", col:"+j.toString()+"]='"+cell_text+"'.")
+        row_dict[colnames[j]] = cell_text;
+      }
+      table_data.push(row_dict)
+    }
+
+    return table_data
+  }
+
 
   fetch(url).then(function (response) {
   	// The API call was successful!
@@ -34,29 +67,32 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
   	var parser = new DOMParser();
   	var doc = parser.parseFromString(html, 'text/html');
     // Get the image file
-  	var elem1 = doc.getElementById('content_container_955722');
+  	//var elem1 = doc.getElementById('content_container_955722');
     ////*[@id="content_container_955722"]
-  	console.log(elem1);
-    var elem2 = elem1.querySelector('h2')
-    console.log("elem2:", elem2);
-    var date_text = elem2.innerHTML
-    console.log("date_text:", date_text);
+  	//console.log(elem1);
+    //var elem2 = elem1.querySelector('h2')
+    //console.log("elem2:", elem2);
+    //var date_text = elem2.innerHTML
+    //console.log("date_text:", date_text);
     var elems_h2 = doc.getElementsByTagName('h2')
-    console.log("elems_h2[5].textContent:", elems_h2[5].textContent);
-
+    var date_text = doc.getElementsByTagName('h2')[5].textContent
+    console.log("date_text = elems_h2[5].textContent:", date_text);
     //https://developer.mozilla.org/en-US/docs/Web/API/Document/evaluate
     //class="table table-bordered header-basic"
-    var elem_table = doc.getElementsByClassName('table-bordered')
-    console.log("elem_table:\n", elem_table)
-    console.log("typeof elem_table:\n", typeof elem_table)
+    //var elem_table = doc.getElementsByClassName('table-bordered')
+    //console.log("elem_table:\n", elem_table)
+    //console.log("typeof elem_table:\n", typeof elem_table)
     //console.log("elem_table.rows.length:", elem_table.rows.length)//err elem_table.rows is undefined
     var elem_table = doc.getElementsByTagName('table')
-    console.log("elem_table getElementsByTagName:\n", elem_table)
-    console.log("elem_table[0].rows:", elem_table[0].rows)
+    //console.log("elem_table getElementsByTagName:\n", elem_table)
+    //console.log("elem_table[0].rows:", elem_table[0].rows)
     console.log("elem_table[0].rows.length:", elem_table[0].rows.length)
-    console.log("elem_table[0].rows[0]:", elem_table[0].rows[0])
-    console.log("elem_table[0].rows[0].cells:", elem_table[0].rows[0].cells)
+    //console.log("elem_table[0].rows[0]:", elem_table[0].rows[0])
+    //console.log("elem_table[0].rows[0].cells:", elem_table[0].rows[0].cells)
     console.log("elem_table[0].rows[0].cells.length:", elem_table[0].rows[0].cells.length)
+    data = get_data_from_dom(elem_table[0], date_text)
+    console.log("data retrieved from dom =\n", data)
+    /*
     console.log("elem_table[0].rows[0].cells[0]:", elem_table[0].rows[0].cells[0])
     console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[0].cells[0].textContent)
     console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[1].cells[0].textContent)
@@ -66,15 +102,18 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
     console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[1].cells[1].textContent)
     console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[2].cells[1].textContent)
     console.log("elem_table[0].rows[0].cells[0].textContent:", elem_table[0].rows[3].cells[1].textContent)
+    */
 
     //console.log("elem_table.rows.length:", elem_table.rows.length)//err elem_table.rows is undefined
     //var elem_thead = doc.getElementsByTagName('thead')
     //console.log("elem_thead:\n", elem_thead)
+    /*
     var elems_th = doc.getElementsByTagName('th')
-    console.log("elems_th:\n", elems_th)
+    //console.log("elems_th:\n", elems_th)
     for (var i=0; i<elems_th.length; i++){
       console.log(i.toString()+": "+ elems_th[i].textContent)
     }
+    */
 
 
   	//console.log(html);
